@@ -1,4 +1,4 @@
-# Final_Year_Project
+# Final Year Project
 Prototype for simulation of the final year project
 
 ### Note the following folder descriptions <br/>
