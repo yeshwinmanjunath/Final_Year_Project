@@ -6,27 +6,25 @@ const getPort = require('get-port')
 const readline = require('readline')
 
 class Block {
-
-    constructor(data, previousHash){
+  constructor(data, previousHash){
 		this.data = data
 		this.previousHash = previousHash
 		this.timeStamp = new Date().getTime()
 		this.nonce = 0
 		this.hash = this.calculateHash()
-    }
+  }
 
-    calculateHash(){
-        return crypto_NEW.SHA256(
-            this.previousHash + 
-            this.timeStamp.toString() + 
-            this.nonce.toString()
-        ).toString()
-    }
+  calculateHash(){
+    return crypto_NEW.SHA256(
+      this.previousHash + 
+      this.timeStamp.toString() + 
+      this.nonce.toString()
+    ).toString()
+  }
 
-    mineBlock(difficulty)
-	{
-        let target = Array(difficulty+1).join('0')
-        while(this.hash.substring(0, difficulty).localeCompare(target)!=0)
+  mineBlock(difficulty){
+    let target = Array(difficulty+1).join('0')
+    while(this.hash.substring(0, difficulty).localeCompare(target)!=0)
 		{
 			//System.out.println("Current hash: "+hash.toString());
 			this.nonce++;
@@ -38,20 +36,20 @@ class Block {
 
 class BlockChain {
 
-    constructor(genesis_block, difficulty){
-        this.blockchain = [genesis_block] 
-        this.difficulty = difficulty
-        this.num_blocks=1
-        this.blockchain[this.num_blocks-1].mineBlock(this.difficulty)
-    }
+  constructor(genesis_block, difficulty){
+    this.blockchain = [genesis_block] 
+    this.difficulty = difficulty
+    this.num_blocks=1
+    this.blockchain[this.num_blocks-1].mineBlock(this.difficulty)
+  }
 
-    addBlock(new_block){
-        this.blockchain.push(new_block)
-        this.num_blocks++
-        this.blockchain[this.num_blocks-1].mineBlock(this.difficulty)
-    }
+  addBlock(new_block){
+    this.blockchain.push(new_block)
+    this.num_blocks++
+    this.blockchain[this.num_blocks-1].mineBlock(this.difficulty)
+  }
 
-    isChainValid()
+  isChainValid()
 	{
 		for(let i=1; i<this.num_blocks; i++)
 		{
@@ -80,8 +78,9 @@ let b1 = new BlockChain(new Block("First block", "0"), 3)
 console.log("Second prev hash:"+b1.blockchain[b1.num_blocks-1].hash)
 b1.addBlock(new Block("Second block", b1.blockchain[b1.num_blocks-1].hash))
 b1.addBlock(new Block("Third block", b1.blockchain[b1.num_blocks-1].hash))
-console.log(b1)
-console.log("Blockchain validity: "+b1.isChainValid())
+//console.log(b1)
+//console.log("Blockchain validity: "+b1.isChainValid())
+
 /**
  * Here we will save our TCP peer connections
  * using the peer id as key: { peer_id: TCP_Connection }
@@ -123,10 +122,11 @@ const askUser = async () => {
     output: process.stdout
   })
 
+  console.log("Current blockchain: "+JSON.stringify(b1))
   rl.question('Send message: ', message => {
     // Broadcast to peers
     for (let id in peers) {
-      peers[id].conn.write(message)
+      peers[id].conn.write(JSON.stringify(b1))
     }
     rl.close()
     rl = undefined
@@ -184,8 +184,9 @@ const sw = Swarm(config)
       // Here we handle incomming messages
       log(
         'Received Message from peer ' + peerId,
-        '----> ' + data.toString()
+        '----> ' + data   //.toString()
       )
+      b1 = JSON.parse(data)
     })
 
     conn.on('close', () => {
