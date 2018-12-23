@@ -92,7 +92,7 @@ console.log("connection closed");
 })*/
 
 
-  console.log("1")
+  //console.log("1")
 
  
 
@@ -133,9 +133,9 @@ rl.on('line', function(line){
 
 
 
-for (let id in peers){
+/*for (let id in peers){
 
   console.log(counter)
 
-}
+}*/
 
