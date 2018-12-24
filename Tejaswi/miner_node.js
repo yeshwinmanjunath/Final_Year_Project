@@ -22,34 +22,13 @@ class Block {
     ).toString()
   }
 
-  mineBlock(difficulty, conn){
+  mineBlock(difficulty){
     let target = Array(difficulty+1).join('0')
     while(this.hash.substring(0, difficulty).localeCompare(target)!=0)
 		{
 			//System.out.println("Current hash: "+hash.toString());
 			this.nonce++;
-      this.hash = this.calculateHash()
-      //CHECK FOR INCOMING MESSAGE??
-      console.log("Still mining, checking for incoming message...")
-      conn.on('data', data => {
-        //Received a message
-        log('Received Message from peer ' + peerId,'----> ' + data.toString())
-        //Convert from string of ASCII values to string of characters
-        let data_new = ""
-        for(let i=0; i<data.length; i++)
-        {
-          data_new+=String.fromCharCode(data[i])
-        }
-        data = data_new
-        if(data[0]==='m')
-        {
-          //Message from miner
-          log('Received block from miner ' + peerId)
-          let currtimeStamp = new Date().getTime()
-          console.log("Current time "+ currtimeStamp)
-        }
-        return
-      })
+			this.hash = this.calculateHash()
 		}
 		//console.log("Block mined: " + this.hash)
 	}
@@ -57,17 +36,17 @@ class Block {
 
 class BlockChain {
 
-  constructor(genesis_block, difficulty, conn){
+  constructor(genesis_block, difficulty){
     this.blockchain = [genesis_block] 
     this.difficulty = difficulty
     this.num_blocks=1
-    this.blockchain[this.num_blocks-1].mineBlock(this.difficulty, conn)
+    this.blockchain[this.num_blocks-1].mineBlock(this.difficulty)
   }
 
-  addBlock(new_block, conn){
+  addBlock(new_block){
     this.blockchain.push(new_block)
     this.num_blocks++
-    this.blockchain[this.num_blocks-1].mineBlock(this.difficulty, conn)
+    this.blockchain[this.num_blocks-1].mineBlock(this.difficulty)
   }
 
   isChainValid()
@@ -191,7 +170,7 @@ const sw = Swarm(config)
             console.log("Chain is valid")
             let new_block =new Block(data.slice(1), BlockChain1.blockchain[BlockChain1.num_blocks-1].hash)
             console.log("Mined new block")
-            BlockChain1.addBlock(new_block, conn)
+            BlockChain1.addBlock(new_block)
             console.log("Appended to blockchain"+JSON.stringify(BlockChain1.blockchain))
           }
         }
@@ -200,7 +179,7 @@ const sw = Swarm(config)
           console.log("Blockchain doesn't exist")
           let genesis_block = new Block(data.slice(1), "0")
           console.log("Mined genesis block")
-          BlockChain1 = new BlockChain(genesis_block, 5, conn)
+          BlockChain1 = new BlockChain(genesis_block, 3)
           console.log("Created blockchain"+JSON.stringify(BlockChain1.blockchain))
         }
         //Broadcast mined block to other miners
@@ -227,14 +206,14 @@ const sw = Swarm(config)
           if(BlockChain1.isChainValid())
           {
             console.log("Chain is valid")
-            BlockChain1.addBlock(new_block, conn)
+            BlockChain1.addBlock(new_block)
             console.log("Appended to blockchain"+JSON.stringify(BlockChain1.blockchain))
           }
         }
         else{
           //Blockchain doesn't already exist, create now
           console.log("Blockchain doesn't exist")
-          BlockChain1 = new BlockChain(new_block, 5, conn)
+          BlockChain1 = new BlockChain(new_block, 3)
           console.log("Created blockchain"+JSON.stringify(BlockChain1.blockchain))
         }
       }
